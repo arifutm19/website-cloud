@@ -1,10 +1,316 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>Website Cloud Saya</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cloud Drive</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f1f3f4;
+      color: #202124;
+    }
+
+    .navbar {
+      width: 100%;
+      height: 70px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 30px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      position: fixed;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #1a73e8;
+    }
+
+    .container {
+      width: 95%;
+      max-width: 1200px;
+      margin: 100px auto 30px;
+    }
+
+    .upload-box {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      margin-bottom: 30px;
+    }
+
+    .upload-box h2 {
+      margin-bottom: 20px;
+    }
+
+    .upload-actions {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    input[type="file"] {
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+    }
+
+    button {
+      background: #1a73e8;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #1558b0;
+    }
+
+    .status {
+      margin-top: 15px;
+      color: green;
+      font-weight: bold;
+    }
+
+    .gallery-title {
+      margin-bottom: 20px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      transition: 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      background: #ddd;
+    }
+
+    .card-body {
+      padding: 15px;
+    }
+
+    .file-name {
+      font-weight: bold;
+      margin-bottom: 10px;
+      word-break: break-word;
+    }
+
+    .card-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .share-link {
+      display: block;
+      margin-top: 10px;
+      color: #1a73e8;
+      font-size: 13px;
+      word-break: break-all;
+    }
+
+    .empty {
+      text-align: center;
+      margin-top: 50px;
+      color: #777;
+    }
+
+    @media(max-width: 600px){
+      .navbar {
+        padding: 0 15px;
+      }
+
+      .logo {
+        font-size: 20px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Hello Cloud!</h1>
-  <p>Website saya sudah online.</p>
+
+  <div class="navbar">
+    <div class="logo">
+      ☁️ Cloud Drive
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="upload-box">
+      <h2>Upload File</h2>
+
+      <div class="upload-actions">
+        <input type="file" id="fileInput">
+
+        <button onclick="uploadFile()">
+          Upload File
+        </button>
+      </div>
+
+      <div class="status" id="status"></div>
+    </div>
+
+    <div class="gallery-title">
+      File Cloud
+    </div>
+
+    <div class="gallery" id="gallery"></div>
+
+    <div class="empty" id="emptyText">
+      Belum ada file di cloud.
+    </div>
+
+  </div>
+
+  <script type="module">
+
+    import { initializeApp }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+    import {
+      getStorage,
+      ref,
+      uploadBytes,
+      getDownloadURL,
+      listAll
+    }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEwZOcfrPljCSUCoy-Ppa59LPQdbIcbBs",
+      authDomain: "website-cloud-c5573.firebaseapp.com",
+      projectId: "website-cloud-c5573",
+      storageBucket: "website-cloud-c5573.firebasestorage.app",
+      messagingSenderId: "523295746487",
+      appId: "1:523295746487:web:64e828fc8997e37701e032"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+
+    const gallery = document.getElementById("gallery");
+    const statusText = document.getElementById("status");
+    const emptyText = document.getElementById("emptyText");
+
+    async function loadFiles(){
+
+      gallery.innerHTML = "";
+
+      const listRef = ref(storage, "files");
+
+      const response = await listAll(listRef);
+
+      if(response.items.length > 0){
+        emptyText.style.display = "none";
+      } else {
+        emptyText.style.display = "block";
+      }
+
+      for(const item of response.items){
+
+        const url = await getDownloadURL(item);
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+          <img src="${url}">
+
+          <div class="card-body">
+            <div class="file-name">
+              ${item.name}
+            </div>
+
+            <div class="card-buttons">
+              <a href="${url}" target="_blank">
+                <button>Buka</button>
+              </a>
+
+              <button onclick="copyLink('${url}')">
+                Share
+              </button>
+            </div>
+
+            <a class="share-link" href="${url}" target="_blank">
+              ${url}
+            </a>
+          </div>
+        `;
+
+        gallery.appendChild(card);
+      }
+    }
+
+    window.copyLink = function(url){
+      navigator.clipboard.writeText(url);
+      alert("Link berhasil disalin");
+    }
+
+    window.uploadFile = async function(){
+
+      const file =
+      document.getElementById("fileInput").files[0];
+
+      if(!file){
+        alert("Pilih file dulu");
+        return;
+      }
+
+      statusText.innerHTML = "Uploading...";
+
+      const storageRef =
+      ref(storage, `files/${Date.now()}-${file.name}`);
+
+      await uploadBytes(storageRef, file);
+
+      statusText.innerHTML = "Upload berhasil";
+
+      loadFiles();
+    }
+
+    loadFiles();
+
+  </script>
+
 </body>
 </html>
