@@ -1,1 +1,143 @@
-<h1>TES BERHASIL</h1>
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Cloud Drive</title>
+
+  <style>
+
+    body{
+      font-family:Arial;
+      background:#f1f3f4;
+      margin:0;
+      padding:30px;
+      text-align:center;
+    }
+
+    h1{
+      color:#1a73e8;
+    }
+
+    .box{
+      background:white;
+      padding:30px;
+      border-radius:15px;
+      max-width:500px;
+      margin:auto;
+      box-shadow:0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    button{
+      padding:12px 25px;
+      border:none;
+      background:#1a73e8;
+      color:white;
+      border-radius:10px;
+      cursor:pointer;
+      margin-top:20px;
+      font-size:16px;
+    }
+
+    img{
+      width:100%;
+      margin-top:20px;
+      border-radius:10px;
+    }
+
+    #link{
+      display:block;
+      margin-top:15px;
+      word-break:break-all;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="box">
+
+    <h1>☁️ Cloud Drive</h1>
+
+    <input type="file" id="file">
+
+    <br>
+
+    <button onclick="uploadFile()">
+      Upload
+    </button>
+
+    <img id="preview">
+
+    <a id="link" target="_blank"></a>
+
+  </div>
+
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getStorage,
+ref,
+uploadBytes,
+getDownloadURL
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+const firebaseConfig = {
+
+apiKey: "AIzaSyDEwZOcfrPljCSUCoy-Ppa59LPQdbIcbBs",
+
+authDomain: "website-cloud-c5573.firebaseapp.com",
+
+projectId: "website-cloud-c5573",
+
+storageBucket: "website-cloud-c5573.firebasestorage.app",
+
+messagingSenderId: "523295746487",
+
+appId: "1:523295746487:web:64e828fc8997e37701e032"
+
+};
+
+const app = initializeApp(firebaseConfig);
+
+const storage = getStorage(app);
+
+window.uploadFile = async function(){
+
+const file =
+document.getElementById("file").files[0];
+
+if(!file){
+alert("Pilih file dulu");
+return;
+}
+
+const storageRef =
+ref(storage, file.name);
+
+await uploadBytes(storageRef, file);
+
+const url =
+await getDownloadURL(storageRef);
+
+document.getElementById("preview").src = url;
+
+document.getElementById("link").href = url;
+
+document.getElementById("link").innerHTML = "Buka File";
+
+alert("Upload berhasil");
+
+}
+
+</script>
+
+</body>
+</html>
